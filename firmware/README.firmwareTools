@@ -1,0 +1,68 @@
+# 
+#
+#  README.firmwareTools
+#
+#  Author:
+#     Bryan Moffit (moffit@jlab.org  x5660)
+#     TJNAF Data Acquisition Group
+#
+#
+
+The fadcFirmwareTools.c extension to the fadcLib allows for the update of firmware
+for the main FPGA (FX70T) and the ADC Processing FPGA (LX110) for FADC250 V2.
+   fpga_choice :     1 for FX70T (Control FPGA)
+                     2 for LX110 (Processing FPGA)
+
+Easy steps (by example):
+
+SINGLE BOARD:
+
+ *** VXWORKS ***
+  - Initialize the board (at VME address 0xee0000)
+     faInit(0xee0000,0,1,(1<<18));
+
+  - Check for proper initialization
+     faStatus(0,0);
+
+  - Load in the proper firmware dat file
+     fadcFirmwareReadFile("FX70T_firmware.dat");
+
+  - Load the firmware onto the FADC.  
+    Second argument must specify which FPGA is to be updated 
+	(1: FADC_FIRMWARE_FX70T or 2:FADC_FIRMWARE_LX110)
+     fadcFirmwareLoad(0, 1 ,1);
+
+ *** LINUX ***
+  - Run on the command line:
+     fadcFirmwareUpdate <firmware MCS file> <FADC VME ADDRESS>	
+
+    This process takes 10 minutes (roughly).
+
+MULTIPLE BOARDS
+  This is essentially SINGLE BOARD, done in parallel
+
+ *** VXWORKS ***
+  - Initialize the boards (at VME addresses 0xee0000, 0xef0000, 0xf00000)
+     faInit(0xee0000,0x10000,3,(1<<18));
+
+  - Check for proper initialization
+     faGStatus(0);
+
+  - Load in the proper firmware dat file
+    fadcFirmwareReadFile("FX70T_firmware.dat");
+
+  - Load the firmware onto the FADCs.  
+    First argument must specify which FPGA is to be updated 
+	(1: FADC_FIRMWARE_FX70T or 2:FADC_FIRMWARE_LX110)
+    fadcFirmwareGLoad(1,0);
+
+ *** LINUX ***
+  - Run on the command line:
+     fadcGFirmwareUpdate <firmware MCS file>
+
+  This process STILL takes roughly 10 minutes, as each board update is done in parallel.
+
+PROBLEMS
+  If the update fails.  Contact an expert:
+     Bryan Moffit (moffit@jlab.org) 
+     Ed Jastrzembski (jastrzem@jlab.org)

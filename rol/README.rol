@@ -1,0 +1,57 @@
+################################################################################
+#
+# README for fadclib CODA Readout list (with Intel-based Linux ROC)
+#
+# Author:
+#      Bryan Moffit
+#      TJNAF Data Acquisition Group
+#
+################################################################################
+
+The primary readout list that was formally compiled using "makelist" has been
+replaced with that compiled with a "Makefile".  
+
+Compile the example primary readout list (using library-call configuration):
+   make fadc_list.so 
+ OR the VXS version (using fadc250Config file configuration):
+   make fadc_vxs_list.so
+
+For the desired ROC in the CODA 3 COOL database, the primary readout
+   list (ROL1) should be indicated as:
+
+   PATH/fadc_list.so
+ OR
+   PATH/fadc_vxs_list.so
+
+Where PATH is the full path of the .so file, which must be accessible by
+the ROC running coda_roc.
+
+Primary List specifics:
+  Each of these routines is linked to a CODA transition (and MUST be defined):
+    DOWNLOAD:  rocDownload()
+    PRESTART:  rocPrestart()
+    GO      :  rocGo()
+    END     :  rocEnd();
+
+  The trigger routine is defined with 
+            :  rocTrigger(int arg)
+
+  Define the event pool and lengths using compilation defintions:
+   #define MAX_EVENT_POOL    400
+   #define MAX_EVENT_LENGTH   1024*100      /* Size in Bytes */
+
+  Define the trigger interface (TI) Master with :
+   #define TI_MASTER
+   #define TI_READOUT TI_READOUT_EXT_POLL
+   #define TI_ADDR (21 << 19)
+
+  or as a TI Slave with:
+   #define TI_SLAVE
+   #define TI_READOUT TI_READOUT_TS_POLL
+   #define TI_ADDR (21 << 19)
+
+FADC250 configuration may be done by
+ * calls to routines in the library (as is done in fadc_list.c)
+ * using a fadc250Config file (as is done in fadc_vxs_list.c)
+
+Details of the fadc250Config file are noted in README.fadc250Config

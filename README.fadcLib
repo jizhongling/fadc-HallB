@@ -1,0 +1,69 @@
+/* Library and Example code for use of the Jefferson Lab
+   VME Based 250MHz Flash ADC Module
+
+   Requires: FADC
+             vxWorks 5.5 or later
+             universeDma or tempeDma Library
+
+
+   fadcLib.c fadcLib.h   : Library
+   fadc_list.crl         : Readout list for 1 ADC
+   fadc_daq.boot         : Boot script standalone
+   roc4_fadc_coda26.boot : Boot scripte for ROC readout
+
+Basics:
+
+  faInit(addr,addr_inc,num,flag)
+
+    addr: A24 VME address set by micro switches on the FADC
+
+    addr_inc: With multiple boards this is the value
+              that the A24 address is incremented between
+              base addresses of each board (typically 0x1000)
+
+    num: Number of F1TDCs to initialize
+
+    flag: 16 bit integer
+       Low 4 bits - Specifies the default Signal distribution (clock,trigger) 
+                    source for the board (INT, FP,P2,VXS)
+                   0  CLK (Internal)  TRIG (FP)
+                   1  CLK (Internal)  TRIG (Internal)
+                   2  CLK (Internal)  TRIG (P2)
+                   3  CLK (Internal)  TRIG (VXS)
+                   4  CLK (FP)        TRIG (FP)   (VME SDC Mode)
+                   5-7  Invalid - default to 4
+                   8  CLK (P2)        TRIG (P2)   (VME BDC Mode)
+                   9-11 Invalid - default to 8
+                  12  CLK (VXS)       TRIG (VXS)  (VXS Mode)
+                  13-15 Invalid - default to 12
+
+
+           High 12bits - A16 Base address of FADC signal dist
+                         module (if source = 4 SDC Mode). This board
+                         can control up to 5 FADC Boards.
+
+
+Examples:  
+
+     Initialize a single FADC at address 0xed0000. 
+      (Internal Clock, Front Panel Trigger)
+
+        faInit(0xed0000,0,0,0)
+
+---------------------------------------------
+
+     Initialize 5 FADC boards at   0xee0000
+                                   0xee1000
+                                   0xee2000
+                                   0xee3000
+                                   0xee4000
+                 FADC SDC Board at 0xed00
+       Front Panel Trigger and Clock
+
+       faInit(0xee0000,0x1000,5,0xed04)
+
+---------------------------------------------
+
+
+   Questions:
+      David Abbott  x7190

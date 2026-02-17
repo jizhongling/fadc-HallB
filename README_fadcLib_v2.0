@@ -1,0 +1,98 @@
+/* Library and Example code for use of the Jefferson Lab
+   VME Based 250MHz Flash ADC Module
+
+   Requires: FADC V2
+             vxWorks 5.5 or later
+              - universeDma or tempeDma Library
+           OR 
+	     Linux >=2.6.18
+	      - GE kernel module with jvme library
+
+ VXWORKS:
+   fadcLib.o              : Downloadable object for std FADC Lib
+   crl/fadc_list.crl      : Readout list for 1 ADC (CODA >=2.6)
+   boot/roc6_coda26.boot  : Boot script for ROC readout (CODA 2.6)
+   boot/roc6_coda261.boot : Boot script for ROC readout (CODA 2.6.1)
+ LINUX:
+   fadcLib.so             : Shared Library object for std FADC Lib
+   rol/fadc_list.c        : CODA Readout list for 1 ADC
+ COMMON:
+   fadcLib.c fadcLib.h    : Library
+   faItrig.c              : Library extensions for Internal trigger
+   faFirmwareTools.c      : Library extensions for firmware updates
+
+Basics:
+
+  faInit(addr,addr_inc,num,flag)
+
+    addr: A24 VME address set by micro switches on the FADC
+
+    addr_inc: With multiple boards this is the value
+              that the A24 address is incremented between
+              base addresses of each board (typically 0x1000)
+
+    num: Number of F1TDCs to initialize
+
+
+   iFlag: 16 bit integer
+       Low 6 bits - Specifies the default Signal distribution (clock,trigger) 
+                    sources for the board (INTernal, FrontPanel, VXS, VME(Soft))
+       bit    0:  defines Sync Reset source
+                     0  VME (Software Sync-Reset)
+                     1  Front Panel/VXS/P2 (Depends on Clk/Trig source selection)
+       bits 3-1:  defines Trigger source
+               0 0 0  VME (Software Triggers)
+               0 0 1  Front Panel Input
+               0 1 0  VXS (P0) 
+               1 0 0  Internal Trigger Logic (HITSUM FPGA)
+               (all others Undefined - default to Internal)
+       bits 5-4:  defines Clock Source
+           0 0  Internal 250MHz Clock
+           0 1  Front Panel 
+           1 0  VXS (P0)
+           1 1  P2 Connector (Blackplane)
+
+       Common Modes of Operation:
+           Value = 0  CLK (Int)  TRIG (Soft)   SYNC (Soft)    (Debug/Test Mode)
+                   2  CLK (Int)  TRIG (FP)     SYNC (Soft)    (Single Board
+                   3  CLK (Int)  TRIG (FP)     SYNC (FP)         Modes)
+                0x10  CLK (FP)   TRIG (Soft)   SYNC (Soft)
+                0x13  CLK (FP)   TRIG (FP)     SYNC (FP)      (VME SDC Mode)
+                0x20  CLK (VXS)  TRIG (Soft)   SYNC (Soft)
+                0x25  CLK (VXS)  TRIG (VXS)    SYNC (VXS)     (VXS SD Mode)
+
+
+      High 10bits - A16 Base address of FADC Signal Distribution Module
+                    This board can control up to 7 FADC Boards.
+                    Clock Source must be set to Front Panel (bit4 = 1)
+
+      bit 16:  Exit before board initialization
+            0  Initialize FADC (default behavior)
+            1  Skip initialization (just setup register map pointers)
+
+
+Examples:  
+
+     Initialize a single FADC at address 0xed0000. 
+      (Internal Clock, Front Panel Trigger)
+
+        faInit(0xed0000,0,0,0)
+
+---------------------------------------------
+
+     Initialize 5 FADC boards at   0xee0000
+                                   0xee1000
+                                   0xee2000
+                                   0xee3000
+                                   0xee4000
+                 FADC SDC Board at 0xed00
+       Front Panel Trigger Sync and Clock
+
+       faInit(0xee0000,0x1000,5,0xed13)
+
+---------------------------------------------
+
+
+   Questions:
+      David Abbott  x7190
+      Bryan moffit  x5660

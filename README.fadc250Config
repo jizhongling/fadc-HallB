@@ -1,0 +1,78 @@
+################################################################################
+#
+# README for fadc250Config
+#    Configuration of one or more fadc250s with a config file
+#
+# Author:
+#      Bryan Moffit
+#      TJNAF Data Acquisition Group
+#
+################################################################################
+
+This README describes the use of the fadc250Config library of routines
+to configure one or more fadc250s.  The configuration file routines here were
+adapted from the Hall-B implementation.
+
+Example fadc250Config file (contains all definitions recognized by fadc250Config):
+     config/example.cnf
+
+Default Usage:
+ * include fadc250Config header in program/readout list
+
+     #include "fadc250Config.h"
+
+ * Call fadc250Config(...) after fadc initialization with faInit(...):
+
+     int fadc250Config(char *fname);
+
+   Examples:
+
+ * Filename with relative path
+
+     fadc250Config("example.cnf");
+
+   PATHS checked:
+     ${FADC250_PARAMS}/example.cnf
+     ./fadc250/example.cnf
+
+ * Filename with ./ relative path
+
+     fadc250Config("./example.cnf");
+
+   PATHS checked:
+     ./example.cnf
+     
+ * Filename with full path
+
+     fadc250Config("/full/path/example.cnf");
+
+   PATHS checked:
+     /full/path/example.cnf
+     
+ * No filename
+
+     fadc250Config("");
+
+   PATHS checked:
+     ${FADC250_PARAMS}/fadc250/${EXPID}.cnf
+     ./fadc250/${EXPID}.cnf     
+
+
+This macro, defined in the example readout list (rol/fadc_vxs_list.c) as
+
+#define FADC_READ_CONF_FILE {			\
+    fadc250Config("");				\
+    if(rol->usrConfig)				\
+      fadc250Config(rol->usrConfig);		\
+  }
+
+This macro first looks for config file here:
+     ${FADC250_PARAMS}/fadc250/${EXPID}.cnf
+or 
+     ./fadc250/${EXPID}.cnf
+and applies them to the modules initialized with faInit(...)
+
+Then it checks for a configuration file specified in the COOL
+database.  The string is taken from the ROC Component setting "User
+Config".  If it is defined, fadc250Config will treat the config file
+as is done in the examples above.
